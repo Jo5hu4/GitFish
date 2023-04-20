@@ -2,48 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Follow : MonoBehaviour
+public class follow : MonoBehaviour
 {
-    public float speed = 10f;
+  public float followSpeed = 5.0f; // The speed at which the fish follows the mouse
+    public float lagTime = 0.2f; // The amount of lag time between the mouse and the fish
+    private Vector3 mousePosition; // The current mouse position
+    private Vector3 targetPosition; // The target position for the fish to move towards
+    private bool isFacingRight = true; // Whether the fish is facing right
 
-    private Vector3 targetPosition;
-    private bool facingRight = true;
-
-    void Update()
+    private void Update()
     {
         // Get the current mouse position in world space
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = 0f;
+        mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePosition.z = transform.position.z;
 
-        // Set the target position to the mouse position
-        targetPosition = mousePosition;
+        // Calculate the target position with a lag
+        targetPosition = Vector3.Lerp(targetPosition, mousePosition, followSpeed * Time.deltaTime / lagTime);
 
-        // Move the sprite towards the target position
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+        // Update the fish's position to move towards the target position
+        transform.position = targetPosition;
 
-        // Flip the sprite if necessary
-        if ((targetPosition.x > transform.position.x && !facingRight) ||
-            (targetPosition.x < transform.position.x && facingRight))
+        // Determine the direction of movement and flip the fish sprite if necessary
+        if ((isFacingRight && targetPosition.x < transform.position.x) ||
+            (!isFacingRight && targetPosition.x > transform.position.x))
         {
             Flip();
         }
+
+        // Offset the mouse position to be at the end of the fish sprite
+        Vector3 mouseOffset = transform.right * (GetComponent<SpriteRenderer>().bounds.size.x / 2.0f);
+        mousePosition -= mouseOffset;
+
+        // Rotate the fish to face the direction of movement
+        Vector3 direction = targetPosition - transform.position;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
 
-    void Flip()
+    private void Flip()
     {
-        // Switch the direction the sprite is facing
-        facingRight = !facingRight;
-
-        // Flip the sprite by scaling its x-axis by -1
-        Vector3 scale = transform.localScale;
-        scale.x *= -1;
-        transform.localScale = scale;
+        // Flip the fish horizontally
+        isFacingRight = !isFacingRight;
+        transform.Rotate(0.0f, 180.0f, 0.0f);
     }
-
-
-
-
-
-
-
 }
