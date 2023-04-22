@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class ScaleUp : MonoBehaviour
 {
-   public float scaleTime = 1.0f; // The amount of time it takes to scale up the sprite
-    private Vector3 originalScale; // The sprite's original scale
+    public float scaleTime = 1.0f;  // The amount of time it takes to scale up the sprite
+    public float scaleSpeed = 1.0f; // The speed at which the sprite scales up
+    private Vector3 originalScale;  // The sprite's original scale
     private bool isCollided = false; // Whether the sprite has collided with another sprite
 
     private void Start()
@@ -43,18 +44,14 @@ public class ScaleUp : MonoBehaviour
 
     private IEnumerator ScaleUpCoroutine()
     {
-        float currentTime = 0.0f; // The current time
-        while (currentTime < scaleTime)
+        float currentScale = 1.0f; // The current scale of the sprite
+        while (currentScale < 2.0f)
         {
-            // Calculate the new scale based on the current time
-            float t = currentTime / scaleTime;
-            Vector3 newScale = Vector3.Lerp(originalScale, originalScale * 2.0f, t);
+            // Increase the scale of the sprite based on the scale speed
+            currentScale += scaleSpeed * Time.deltaTime;
 
             // Update the sprite's scale
-            transform.localScale = newScale;
-
-            // Increase the current time
-            currentTime += Time.deltaTime;
+            transform.localScale = originalScale * currentScale;
 
             yield return null;
         }
