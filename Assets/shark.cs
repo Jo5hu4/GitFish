@@ -4,69 +4,61 @@ using UnityEngine;
 
 public class shark : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float distance = 5f;
-    public float bobFrequency = 2f;
-    public float bobAmplitude = 0.5f;
-    public float maxTiltAngle = 20f;
+    public float speed = 5.0f; // speed of movement
+    public float distance = 2.0f; // distance to move before flipping
+    public float amplitude = 0.5f; // amplitude of the bobbing motion
+    public float frequency = 1.0f; // frequency of the bobbing motion
+    private Vector2 startPosition; // starting position of the sprite
+    private Vector2 targetPosition; // target position of the sprite
+    private bool isMovingRight = true; // flag to track movement direction
 
-    private Vector3 startPosition;
-    private float moveDistance;
-    private float bobOffset = 0f;
-
-    private bool isMovingRight = true;
-
-    private void Start()
+    void Start()
     {
         startPosition = transform.position;
-        moveDistance = distance;
+        targetPosition = new Vector2(startPosition.x + distance, startPosition.y);
     }
 
-    private void Update()
+    void Update()
     {
-        // Update bob offset based on frequency and time
-        bobOffset += Time.deltaTime * bobFrequency;
+        // calculate vertical offset based on time and frequency
+        float yOffset = Mathf.Sin(Time.time * frequency) * amplitude;
+
+        // apply vertical offset to sprite's position
+        transform.position = new Vector2(transform.position.x, startPosition.y + yOffset);
 
         if (isMovingRight)
         {
-            // Move right
-            transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
+            // move sprite right
+            transform.Translate(Vector2.right * speed * Time.deltaTime);
 
-            if (transform.position.x >= startPosition.x + moveDistance)
+            // if sprite reaches target position, flip its orientation and start moving left
+            if (transform.position.x >= targetPosition.x)
             {
-                // Flip sprite and start moving left
+                transform.position = new Vector2(targetPosition.x, startPosition.y + yOffset);
                 isMovingRight = false;
-                moveDistance = -distance;
                 FlipSprite();
             }
         }
         else
         {
-            // Move left
-            transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
+            // move sprite left
+            transform.Translate(Vector2.left * speed * Time.deltaTime);
 
-            if (transform.position.x <= startPosition.x + moveDistance)
+            // if sprite reaches original position, flip its orientation and start moving right
+            if (transform.position.x <= startPosition.x)
             {
-                // Flip sprite and start moving right
+                transform.position = new Vector2(startPosition.x, startPosition.y + yOffset);
                 isMovingRight = true;
-                moveDistance = distance;
                 FlipSprite();
             }
         }
-
-        // Apply bobbing
-        float bobHeight = Mathf.Sin(bobOffset) * bobAmplitude;
-        transform.position = new Vector3(transform.position.x, startPosition.y + bobHeight, transform.position.z);
-
-        // Apply tilting
-        float tiltAngle = Mathf.Sin(bobOffset * 2f) * maxTiltAngle;
-        transform.rotation = Quaternion.Euler(tiltAngle, 0f, 0f);
     }
 
-    private void FlipSprite()
+    void FlipSprite()
     {
+        // flip sprite horizontally
         Vector3 scale = transform.localScale;
-        scale.x *= -1;
+        scale.x = -scale.x;
         transform.localScale = scale;
     }
 }
